@@ -20,10 +20,8 @@ export default function Register() {
       const res = await api.post("/cadastro", { email, senha });
       const data = res.data;
 
-      // Considere sucesso por status 2xx (principalmente 200/201)
       const is2xx = res.status >= 200 && res.status < 300;
 
-      // E também por payloads alternativos do backend
       const hasSucessoFlag = data?.sucesso === true;
       const hasMensagem =
         typeof data?.mensagem === "string" || typeof data?.message === "string";
@@ -37,7 +35,6 @@ export default function Register() {
         return;
       }
 
-      // Se chegou aqui, tratamos como erro “semânticamente” não-sucedido
       setError(
         data?.erro ||
           data?.mensagem ||
@@ -45,7 +42,6 @@ export default function Register() {
           "Não foi possível cadastrar."
       );
     } catch (err) {
-      // Erros comuns (ex.: 409 e-mail já cadastrado)
       const r = err?.response;
       if (r?.status === 409) {
         setError(r.data?.erro || "E-mail já cadastrado.");
