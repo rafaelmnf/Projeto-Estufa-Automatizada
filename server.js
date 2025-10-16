@@ -1,0 +1,24 @@
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.use(express.json());
+
+const authRoutes = require("./src/routes/auth");
+const estufaRoutes = require("./src/routes/estufa");
+
+app.use("/", authRoutes);
+app.use("/estufa", estufaRoutes);
+
+app.listen(PORT, () => console.log(`API on :${PORT}`));

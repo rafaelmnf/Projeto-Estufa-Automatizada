@@ -1,0 +1,34 @@
+const Estufa = require('../models/estufaModel');
+
+exports.getTemperatura = (req, res) => {
+    const id_usuario = req.userId;
+
+    Estufa.getTemperatura(id_usuario, (err, results) => {
+        if (err) return res.status(500).json({ erro: 'Erro ao buscar temperatura' });
+        res.json(results);
+    });
+};
+
+exports.getUmidade = (req, res) => {
+    const id_usuario = req.userId;
+    Estufa.getUmidade(id_usuario, (err, results) => {
+        if (err) return res.status(500).json({ erro: 'Erro ao buscar umidade' });
+        res.json(results);
+    });
+};
+
+exports.getLuminosidade = (req, res) => {
+    const id_usuario = req.userId;
+    Estufa.getLuminosidade(id_usuario, (err, results) => {
+        if (err) return res.status(500).json({ erro: 'Erro ao buscar luminosidade' });
+        res.json(results);
+    });
+};
+
+exports.getAltura = (req, res) => {
+    const id_usuario = req.userId;
+    Estufa.getAltura(id_usuario, (err, results) => {
+        if (err) return res.status(500).json({ erro: 'Erro ao buscar altura' });
+        res.json(results);
+    });
+};
