@@ -1,5 +1,8 @@
 const express = require("express");
 const cors = require("cors");
+const cron = require('node-cron');
+const climaController = require("./src/controllers/climaController");
+
 require("dotenv").config();
 
 const app = express();
@@ -12,6 +15,11 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+cron.schedule('0 * * * *', () => {
+  console.log('⏱️ Coletando dados do clima...');
+  climaController.coletarEGravar();
+});
 
 app.use(express.json());
 
