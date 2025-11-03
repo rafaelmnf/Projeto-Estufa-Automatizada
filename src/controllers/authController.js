@@ -1,7 +1,68 @@
+const { OAuth2Client } = require('google-auth-library');
 const Usuario = require('../models/usuarios');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+
 require('dotenv').config();
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+exports.loginGoogle = async (req, res) => {
+  const { token } = req.body; // token vindo do frontend
+
+  if (!token) {
+    return res.status(400).json({ erro: 'Token Google não fornecido' });
+  }
+
+  try {
+    // 1️⃣ Verifica o token com o Google
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email } = payload;
+
+    if (!email) {
+      return res.status(400).json({ erro: 'Não foi possível obter o email do Google' });
+    }
+
+    // 2️⃣ Verifica se o usuário já existe
+    Usuario.buscarPorEmail(email, (err, resultado) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ erro: 'Erro ao buscar usuário no banco' });
+      }
+
+      if (resultado.length === 0) {
+        // 3️⃣ Cria o usuário novo, sem senha (pois é login via Google)
+        const senhaFake = null; // ou '', se sua coluna não permitir NULL
+        Usuario.criar(email, senhaFake, (err) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).json({ erro: 'Erro ao criar usuário Google' });
+          }
+        });
+      }
+
+      // 4️⃣ Gera o token JWT da aplicação
+      const tokenJWT = jwt.sign(
+        { email },
+        process.env.JWT_SECRET,
+        { expiresIn: '2h' }
+      );
+
+      res.json({
+        mensagem: 'Login Google bem-sucedido',
+        token: tokenJWT,
+        usuario: { email },
+      });
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(401).json({ erro: 'Token Google inválido', detalhes: err.message });
+  }
+};
 
 exports.cadastrar = async (req, res) => {
     const { email, senha } = req.body;
