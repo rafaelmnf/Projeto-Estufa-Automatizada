@@ -9,3 +9,4 @@ router.get('/luminosidade', autenticar, estufaController.getLuminosidade);
 router.get('/altura', autenticar, estufaController.getAltura);
 
 module.exports = router;
+    

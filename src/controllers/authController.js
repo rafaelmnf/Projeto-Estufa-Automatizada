@@ -1,125 +1,125 @@
-const { OAuth2Client } = require('google-auth-library');
-const Usuario = require('../models/usuarios');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+  const { OAuth2Client } = require('google-auth-library');
+  const Usuario = require('../models/usuarios');
+  const bcrypt = require('bcrypt');
+  const jwt = require('jsonwebtoken');
 
-require('dotenv').config();
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  require('dotenv').config();
+  const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-exports.loginGoogle = async (req, res) => {
-  const { token } = req.body; // token vindo do frontend
+  exports.loginGoogle = async (req, res) => {
+    const { token } = req.body; // token vindo do frontend
 
-  if (!token) {
-    return res.status(400).json({ erro: 'Token Google não fornecido' });
-  }
-
-  try {
-    // 1️⃣ Verifica o token com o Google
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
-    const { email } = payload;
-
-    if (!email) {
-      return res.status(400).json({ erro: 'Não foi possível obter o email do Google' });
+    if (!token) {
+      return res.status(400).json({ erro: 'Token Google não fornecido' });
     }
 
-    // 2️⃣ Verifica se o usuário já existe
-    Usuario.buscarPorEmail(email, (err, resultado) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ erro: 'Erro ao buscar usuário no banco' });
-      }
-
-      if (resultado.length === 0) {
-        // 3️⃣ Cria o usuário novo, sem senha (pois é login via Google)
-        const senhaFake = null; // ou '', se sua coluna não permitir NULL
-        Usuario.criar(email, senhaFake, (err) => {
-          if (err) {
-            console.error(err);
-            return res.status(500).json({ erro: 'Erro ao criar usuário Google' });
-          }
-        });
-      }
-
-      // 4️⃣ Gera o token JWT da aplicação
-      const tokenJWT = jwt.sign(
-        { email },
-        process.env.JWT_SECRET,
-        { expiresIn: '2h' }
-      );
-
-      res.json({
-        mensagem: 'Login Google bem-sucedido',
-        token: tokenJWT,
-        usuario: { email },
+    try {
+      // 1️⃣ Verifica o token com o Google
+      const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
       });
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(401).json({ erro: 'Token Google inválido', detalhes: err.message });
-  }
-};
 
-exports.cadastrar = async (req, res) => {
-    const { email, senha } = req.body;
+      const payload = ticket.getPayload();
+      const { email } = payload;
 
-    if (!email || !senha) {
-        return res.status(400).json({ erro: 'Email e senha obrigatórios', tentarNovamente: true });
-    }
+      if (!email) {
+        return res.status(400).json({ erro: 'Não foi possível obter o email do Google' });
+      }
 
-    Usuario.buscarPorEmail(email, async (err, resultado) => {
-        if (err) return res.status(500).json({ erro: 'Erro interno' });
-
-        if (resultado.length > 0) {
-            return res.status(409).json({ erro: 'Email já cadastrado' });
+      // 2️⃣ Verifica se o usuário já existe
+      Usuario.buscarPorEmail(email, (err, resultado) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ erro: 'Erro ao buscar usuário no banco' });
         }
-
-        try {
-            const senhaCriptografada = await bcrypt.hash(senha, 10);
-            Usuario.criar(email, senhaCriptografada, (err, result) => {
-                if (err) return res.status(500).json({ erro: 'Erro ao cadastrar usuário' });
-                res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso' });
-            });
-        } catch (e) {
-            res.status(500).json({ erro: 'Erro interno ao criptografar senha' });
-        }
-    });
-};
-
-exports.login = (req, res) => {
-    const { email, senha } = req.body;
-
-    if (!email || !senha) {
-        return res.status(400).json({ erro: 'Email e senha obrigatórios' });
-    }
-
-    Usuario.buscarPorEmail(email, async (err, resultado) => {
-        if (err) return res.status(500).json({ erro: 'Erro interno' });
 
         if (resultado.length === 0) {
-            return res.status(401).json({ erro: 'Usuário não encontrado' });
+          // 3️⃣ Cria o usuário novo, sem senha (pois é login via Google)
+          const senhaFake = null; // ou '', se sua coluna não permitir NULL
+          Usuario.criar(email, senhaFake, (err) => {
+            if (err) {
+              console.error(err);
+              return res.status(500).json({ erro: 'Erro ao criar usuário Google' });
+            }
+          });
         }
 
-        const usuario = resultado[0];
-        const senhaConfere = await bcrypt.compare(senha, usuario.senha);
-
-        if (!senhaConfere) {
-            return res.status(401).json({ erro: 'Senha incorreta' });
-        }
-
-        const token = jwt.sign(
-            { id_usuario: usuario.id_usuario, email: usuario.email },
-            process.env.JWT_SECRET,
-            { expiresIn: '2h' }
+        // 4️⃣ Gera o token JWT da aplicação
+        const tokenJWT = jwt.sign(
+          { email },
+          process.env.JWT_SECRET,
+          { expiresIn: '2h' }
         );
 
         res.json({
-            mensagem: 'Login bem-sucedido',
-            token,
+          mensagem: 'Login Google bem-sucedido',
+          token: tokenJWT,
+          usuario: { email },
         });
-    });
-};
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(401).json({ erro: 'Token Google inválido', detalhes: err.message });
+    }
+  };
+
+  exports.cadastrar = async (req, res) => {
+      const { email, senha } = req.body;
+
+      if (!email || !senha) {
+          return res.status(400).json({ erro: 'Email e senha obrigatórios', tentarNovamente: true });
+      }
+
+      Usuario.buscarPorEmail(email, async (err, resultado) => {
+          if (err) return res.status(500).json({ erro: 'Erro interno' });
+
+          if (resultado.length > 0) {
+              return res.status(409).json({ erro: 'Email já cadastrado' });
+          }
+
+          try {
+              const senhaCriptografada = await bcrypt.hash(senha, 10);
+              Usuario.criar(email, senhaCriptografada, (err, result) => {
+                  if (err) return res.status(500).json({ erro: 'Erro ao cadastrar usuário' });
+                  res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso' });
+              });
+          } catch (e) {
+              res.status(500).json({ erro: 'Erro interno ao criptografar senha' });
+          }
+      });
+  };
+
+  exports.login = (req, res) => {
+      const { email, senha } = req.body;
+
+      if (!email || !senha) {
+          return res.status(400).json({ erro: 'Email e senha obrigatórios' });
+      }
+
+      Usuario.buscarPorEmail(email, async (err, resultado) => {
+          if (err) return res.status(500).json({ erro: 'Erro interno' });
+
+          if (resultado.length === 0) {
+              return res.status(401).json({ erro: 'Usuário não encontrado' });
+          }
+
+          const usuario = resultado[0];
+          const senhaConfere = await bcrypt.compare(senha, usuario.senha);
+
+          if (!senhaConfere) {
+              return res.status(401).json({ erro: 'Senha incorreta' });
+          }
+
+          const token = jwt.sign(
+              { id_usuario: usuario.id_usuario, email: usuario.email },
+              process.env.JWT_SECRET,
+              { expiresIn: '2h' }
+          );
+
+          res.json({
+              mensagem: 'Login bem-sucedido',
+              token,
+          });
+      });
+  };

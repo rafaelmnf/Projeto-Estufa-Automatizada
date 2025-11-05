@@ -10,14 +10,14 @@ const PORT = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: 'http://localhost:5173',
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-cron.schedule('0 * * * *', () => {
-  console.log('⏱️ Coletando dados do clima...');
+cron.schedule('*/5 * * * *', () => {
+  console.log('⏱️ Coletando dados do clima (A cada 5 minutos)...');
   climaController.coletarEGravar();
 });
 
