@@ -1,39 +1,34 @@
 const db = require('../config/db');
 
 const Estufa = {
-  getTemperatura: (id_estufa, callback) => {
+  getTemperatura: (callback) => {
     const sql = `
       SELECT temperatura, data_hora
       FROM clima
-      WHERE id_estufa = ?
       ORDER BY data_hora DESC
       LIMIT 1
     `;
-    db.query(sql, [id_estufa], callback);
+    db.query(sql, callback);
   },
 
-  getUmidade: (id_estufa, callback) => {
+  getUmidade: (callback) => {
     const sql = `
       SELECT umidade, data_hora
       FROM clima
-      WHERE id_estufa = ?
       ORDER BY data_hora DESC
       LIMIT 1
     `;
-    db.query(sql, [id_estufa], callback);
+    db.query(sql, callback);
   },
 
-  getLuminosidade: (id_usuario, callback) => {
+  getLuminosidade: (callback) => {
     const sql = `
-      SELECT ls.valor AS luminosidade, ls.data_hora
-      FROM leitura_sensor ls
-      JOIN sensor s ON ls.id_sensor = s.id_sensor
-      JOIN estufa e ON e.id_estufa = s.id_estufa
-      WHERE e.id_usuario = ? AND s.tipo = 'luminosidade'
-      ORDER BY ls.data_hora DESC
+      SELECT lux, data_hora
+      FROM clima
+      ORDER BY data_hora DESC
       LIMIT 1
     `;
-    db.query(sql, [id_usuario], callback);
+    db.query(sql, callback);
   },
 
   getAltura: (id_usuario, callback) => {

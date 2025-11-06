@@ -304,17 +304,31 @@
         async function fetchSensor(endpoint, valueId, timeId, unit = '') {
             const token = localStorage.getItem('jwtToken');
             if (!token) return;
+
             try {
                 const response = await fetch(`${API_URL}/estufa${endpoint}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token}` }
                 });
+
                 if (response.ok) {
                     const data = await response.json();
                     if (data.length > 0) {
                         const leitura = data[0];
-                        document.getElementById(valueId).textContent = (leitura.temperatura || leitura.umidade || leitura.luminosidade || leitura.altura) + unit;
-                        document.getElementById(timeId).textContent = `Última leitura: ${formatDate(leitura.data_hora)}`;
-                    } else document.getElementById(valueId).textContent = 'N/A';
+                        let valor;
+
+                        if (endpoint.includes('temperatura')) valor = leitura.temperatura;
+                        else if (endpoint.includes('umidade')) valor = leitura.umidade;
+                        else if (endpoint.includes('luminosidade')) valor = leitura.lux || leitura.luminosidade;
+                        else if (endpoint.includes('altura')) valor = leitura.altura;
+
+                        document.getElementById(valueId).textContent =
+                        (valor !== undefined ? valor : 'N/A') + unit;
+
+                        document.getElementById(timeId).textContent =
+                        `Última leitura: ${formatDate(leitura.data_hora)}`;
+                    } else {
+                        document.getElementById(valueId).textContent = 'N/A';
+                    }
                 } else if (response.status === 401 || response.status === 403) {
                     showMessage('Sessão expirada. Faça login novamente.', true);
                     setLoggedOut();
@@ -323,6 +337,7 @@
                 console.error(`Erro ao buscar ${endpoint}:`, error);
             }
         }
+
 
         async function fetchEstufaData() {
             if (localStorage.getItem('jwtToken')) {
