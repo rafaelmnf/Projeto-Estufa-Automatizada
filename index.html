@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estufa Automatizada - Dashboard</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script> 
+    <title>🌱 Estufa Automatizada - Dashboard</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        /* ... Estilos CSS ... */
         :root {
             --primary: #4CAF50;
             --secondary: #2196F3;
@@ -30,11 +29,11 @@
             background-color: var(--primary);
             color: white;
             padding: 20px;
-            display: flex; 
+            display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
+
         header div {
             text-align: left;
         }
@@ -56,7 +55,7 @@
             flex-grow: 1;
         }
 
-        #auth-container {
+        #auth-container, #reset-container {
             max-width: 400px;
             margin: 50px auto;
             padding: 20px;
@@ -84,7 +83,7 @@
             font-weight: bold;
         }
 
-        #login-btn, #cadastro-btn {
+        #login-btn, #cadastro-btn, #reset-btn {
             background-color: var(--primary);
             color: white;
         }
@@ -94,6 +93,7 @@
             margin-top: 15px;
             font-size: 0.9em;
         }
+
         .toggle-form a {
             color: var(--primary);
             cursor: pointer;
@@ -128,8 +128,7 @@
             color: var(--text-color);
         }
 
-        /* Container do botão Google */
-        #g_id_onload {
+        #google-login {
             margin-top: 10px;
             display: flex;
             justify-content: center;
@@ -146,6 +145,7 @@
     </header>
 
     <main>
+        <!-- LOGIN / CADASTRO -->
         <div id="auth-container">
             <h2 id="form-title">Login</h2>
             <form id="auth-form">
@@ -154,7 +154,11 @@
                 <button type="submit" id="login-btn">Entrar</button>
             </form>
 
-            <div id="g_id_onload"></div>
+            <p style="text-align:center; margin-top:10px;">
+                <a id="forgot-password-link" style="color:#2196F3; cursor:pointer;">Esqueceu sua senha?</a>
+            </p>
+
+            <div id="google-login"></div>
 
             <div class="toggle-form">
                 <p>Não tem conta? <a id="toggle-to-cadastro">Cadastre-se</a></p>
@@ -162,6 +166,19 @@
             <div id="message" style="margin-top: 10px; color: red; text-align: center;"></div>
         </div>
 
+        <!-- REDEFINIR SENHA -->
+        <div id="reset-container" style="display:none;">
+            <h2>Redefinir Senha</h2>
+            <input type="password" id="nova-senha" placeholder="Nova senha" required>
+            <input type="password" id="confirma-senha" placeholder="Confirmar senha" required>
+            <button id="reset-btn">Redefinir Senha</button>
+            <p style="text-align:center; margin-top:15px;">
+                <a id="voltar-login" style="color:#2196F3; cursor:pointer;">Voltar ao login</a>
+            </p>
+            <div id="reset-message" style="margin-top:10px; text-align:center;"></div>
+        </div>
+
+        <!-- DASHBOARD -->
         <div id="dashboard">
             <div class="data-card">
                 <h3>Temperatura</h3>
@@ -187,12 +204,9 @@
     </main>
 
     <script>
-        // ✅ API URL (Backend)
         const API_URL = 'http://localhost:3000';
-        
-        // Mantendo o Client ID (A porta do frontend para o Google deve ser configurada externamente)
-        const GOOGLE_CLIENT_ID = '679918782521-189tv6r6flciju3ndc4426fib4pnelai.apps.googleusercontent.com'; 
-        
+        const GOOGLE_CLIENT_ID = '679918782521-189tv6r6flciju3ndc4426fib4pnelai.apps.googleusercontent.com';
+
         const authContainer = document.getElementById('auth-container');
         const dashboard = document.getElementById('dashboard');
         const authForm = document.getElementById('auth-form');
@@ -200,6 +214,11 @@
         const messageDiv = document.getElementById('message');
         const toggleCadastro = document.getElementById('toggle-to-cadastro');
         const logoutBtn = document.getElementById('logout-btn');
+        const forgotLink = document.getElementById('forgot-password-link');
+        const resetContainer = document.getElementById('reset-container');
+        const resetBtn = document.getElementById('reset-btn');
+        const resetMessage = document.getElementById('reset-message');
+        const voltarLogin = document.getElementById('voltar-login');
         let loginBtn = document.getElementById('login-btn');
         let isLogin = true;
 
@@ -208,24 +227,15 @@
             messageDiv.style.color = isError ? 'red' : 'green';
         }
 
-        function formatDate(dateString) {
-            if (!dateString) return '--';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
-        }
-
         function setLoggedOut() {
             localStorage.removeItem('jwtToken');
             authContainer.style.display = 'block';
             dashboard.style.display = 'none';
             logoutBtn.style.display = 'none';
             document.getElementById('user-status').textContent = 'Faça Login.';
-            showMessage('Você foi desconectado.', false);
             if (typeof google !== 'undefined' && google.accounts.id) {
                 google.accounts.id.disableAutoSelect();
             }
-            const googleContainer = document.getElementById('g_id_onload');
-            if (googleContainer) googleContainer.style.display = 'flex';
         }
 
         function setLoggedIn(token) {
@@ -234,10 +244,6 @@
             dashboard.style.display = 'grid';
             logoutBtn.style.display = 'block';
             document.getElementById('user-status').textContent = 'Bem-vindo(a)!';
-            
-            const googleContainer = document.getElementById('g_id_onload');
-            if (googleContainer) googleContainer.style.display = 'none';
-
             fetchEstufaData();
         }
 
@@ -248,11 +254,6 @@
             formTitle.textContent = isLogin ? 'Login' : 'Cadastro';
             loginBtn.textContent = isLogin ? 'Entrar' : 'Cadastrar';
             toggleCadastro.textContent = isLogin ? 'Cadastre-se' : 'Fazer Login';
-
-            const googleContainer = document.getElementById('g_id_onload');
-            if (googleContainer) {
-                googleContainer.style.display = isLogin ? 'flex' : 'none';
-            }
             messageDiv.textContent = '';
         }
 
@@ -269,13 +270,13 @@
                 });
                 const data = await apiResponse.json();
                 if (apiResponse.ok) setLoggedIn(data.token);
-                else showMessage(data.erro || 'Erro ao processar login Google na API.');
-            } catch (error) {
-                console.error(error);
-                showMessage('Erro de conexão com a API durante o login Google.');
+                else showMessage(data.erro || 'Erro ao processar login Google.');
+            } catch {
+                showMessage('Erro de conexão com a API.');
             }
         }
-        
+
+        // Login/Cadastro padrão
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
@@ -296,48 +297,95 @@
                         toggleForm();
                     }
                 } else showMessage(data.erro || 'Erro na requisição.');
-            } catch (error) {
+            } catch {
                 showMessage('Erro de conexão com a API.');
             }
         });
 
+        // Esqueci minha senha
+        forgotLink.addEventListener('click', async () => {
+            const email = prompt('Digite seu e-mail cadastrado:');
+            if (!email) return;
+            try {
+                const response = await fetch(`${API_URL}/esqueci-senha`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await response.json();
+                if (response.ok) alert('Um e-mail com o link de redefinição foi enviado.');
+                else alert(data.erro || 'Erro ao enviar e-mail.');
+            } catch {
+                alert('Erro de conexão com o servidor.');
+            }
+        });
+
+        // Página de redefinição
+        if (window.location.pathname.includes('redefinir-senha')) {
+            authContainer.style.display = 'none';
+            resetContainer.style.display = 'block';
+            const token = window.location.search.split('token=')[1];
+
+            resetBtn.addEventListener('click', async () => {
+                const nova = document.getElementById('nova-senha').value;
+                const confirma = document.getElementById('confirma-senha').value;
+                if (nova !== confirma) {
+                    resetMessage.textContent = 'As senhas não coincidem.';
+                    resetMessage.style.color = 'red';
+                    return;
+                }
+                try {
+                    const response = await fetch(`${API_URL}/redefinir-senha`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token, senha: nova })
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        resetMessage.textContent = data.mensagem || 'Senha redefinida!';
+                        resetMessage.style.color = 'green';
+                        setTimeout(() => window.location.href = '/', 3000);
+                    } else {
+                        resetMessage.textContent = data.erro || 'Erro ao redefinir senha.';
+                        resetMessage.style.color = 'red';
+                    }
+                } catch {
+                    resetMessage.textContent = 'Erro de conexão com o servidor.';
+                    resetMessage.style.color = 'red';
+                }
+            });
+        }
+
+        voltarLogin.addEventListener('click', () => {
+            resetContainer.style.display = 'none';
+            authContainer.style.display = 'block';
+        });
+
+        // Atualização de sensores
         async function fetchSensor(endpoint, valueId, timeId, unit = '') {
             const token = localStorage.getItem('jwtToken');
             if (!token) return;
 
             try {
                 const response = await fetch(`${API_URL}/estufa${endpoint}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-
                 if (response.ok) {
                     const data = await response.json();
                     if (data.length > 0) {
                         const leitura = data[0];
-                        let valor;
-
-                        if (endpoint.includes('temperatura')) valor = leitura.temperatura;
-                        else if (endpoint.includes('umidade')) valor = leitura.umidade;
-                        else if (endpoint.includes('luminosidade')) valor = leitura.lux || leitura.luminosidade;
-                        else if (endpoint.includes('altura')) valor = leitura.altura;
-
-                        document.getElementById(valueId).textContent =
-                        (valor !== undefined ? valor : 'N/A') + unit;
-
-                        document.getElementById(timeId).textContent =
-                        `Última leitura: ${formatDate(leitura.data_hora)}`;
-                    } else {
-                        document.getElementById(valueId).textContent = 'N/A';
+                        const valor = leitura.temperatura || leitura.umidade || leitura.lux || leitura.altura;
+                        document.getElementById(valueId).textContent = (valor !== undefined ? valor : 'N/A') + unit;
+                        document.getElementById(timeId).textContent = `Última leitura: ${new Date(leitura.data_hora).toLocaleString('pt-BR')}`;
                     }
-                } else if (response.status === 401 || response.status === 403) {
-                    showMessage('Sessão expirada. Faça login novamente.', true);
+                } else if ([401, 403].includes(response.status)) {
+                    showMessage('Sessão expirada. Faça login novamente.');
                     setLoggedOut();
                 }
             } catch (error) {
-                console.error(`Erro ao buscar ${endpoint}:`, error);
+                console.error('Erro ao buscar sensor:', error);
             }
         }
-
 
         async function fetchEstufaData() {
             if (localStorage.getItem('jwtToken')) {
@@ -349,34 +397,26 @@
             }
         }
 
-        function initGoogleButton() {
-            // para aceitar a Origem JavaScript Autorizada: http://localhost:5173
-            const googleContainer = document.getElementById('g_id_onload');
-            if (typeof google !== 'undefined' && google.accounts.id && googleContainer) {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleGoogleCredentialResponse,
-                    auto_prompt: false
-                });
-                
-                google.accounts.id.renderButton(
-                    googleContainer,
-                    { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with' }
-                );
-            }
-        }
-
-        function init() {
-            initGoogleButton();
+        // Inicializa após tudo carregado
+        window.addEventListener('load', () => {
             const token = localStorage.getItem('jwtToken');
             if (token) setLoggedIn(token);
-            else {
-                isLogin = true; 
-                setLoggedOut();
-            }
-        }
+            else setLoggedOut();
 
-        document.addEventListener('DOMContentLoaded', init);
+            // Inicializa botão do Google
+            if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleCredentialResponse
+                });
+                google.accounts.id.renderButton(
+                    document.getElementById('google-login'),
+                    { theme: 'outline', size: 'large', text: 'signin_with' }
+                );
+            } else {
+                console.error("Google API não carregada. Verifique a conexão e o client_id.");
+            }
+        });
     </script>
 </body>
 </html>
