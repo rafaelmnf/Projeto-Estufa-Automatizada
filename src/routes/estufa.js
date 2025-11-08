@@ -7,6 +7,7 @@ router.get('/temperatura', autenticar, estufaController.getTemperatura);
 router.get('/umidade', autenticar, estufaController.getUmidade);
 router.get('/luminosidade', autenticar, estufaController.getLuminosidade);
 router.get('/altura', autenticar, estufaController.getAltura);
+router.get('/allTemp', autenticar, estufaController.getAllTemp);
 
 module.exports = router;
     

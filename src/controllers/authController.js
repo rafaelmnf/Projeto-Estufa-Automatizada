@@ -72,6 +72,9 @@
       if (!email || !senha) {
           return res.status(400).json({ erro: 'Email e senha obrigatórios', tentarNovamente: true });
       }
+      if(senha.length <= 5){
+        return res.status(400).json({ erro: 'Senha deve conter ao minimo 6 digitos', tentarNovamente: true});
+      }
 
       Usuario.buscarPorEmail(email, async (err, resultado) => {
           if (err) return res.status(500).json({ erro: 'Erro interno' });

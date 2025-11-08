@@ -16,8 +16,8 @@ app.use(
   })
 );
 
-cron.schedule('0 * * * *', () => {
-  console.log('🕐 Coletando dados do clima (a cada hora)...');
+cron.schedule('* * * * *', () => {
+  console.log('🕐 Coletando dados do clima (a cada minuto)...');
   climaController.coletarEGravar();
 });
 

@@ -7,6 +7,13 @@ exports.getTemperatura = (req, res) => {
     });
 };
 
+exports.getAllTemp = (req, res) =>{
+    Estufa.getAllTemp((err, results) =>{
+        if (err) return res.status(500).json({ erro: 'Erro ao buscar temperatura' });
+        res.json(results);
+    });
+};
+
 exports.getUmidade = (req, res) => {
     Estufa.getUmidade((err, results) => {
         if (err) return res.status(500).json({ erro: 'Erro ao buscar umidade' });
