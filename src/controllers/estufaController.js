@@ -35,3 +35,17 @@ exports.getAltura = (req, res) => {
         res.json(results);
     });
 };
+
+exports.alertaTemperatura = (req, res) => {
+    Clima.alertaTemperatura((err, results) => {
+      if (err) return res.status(500).json({ erro: 'Erro ao buscar temperatura' });
+        res.json(results);
+  });
+};
+
+exports.alertaUmidade = (req, res) => {
+    Clima.alertaUmidade((err, results) => {
+      if (err) return res.status(500).json({ erro: 'Erro ao buscar temperatura' });
+        res.json(results);
+  });
+};

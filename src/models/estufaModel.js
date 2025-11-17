@@ -30,6 +30,15 @@ const Estufa = {
     db.query(sql, callback);
   },
 
+  getAllUmidade: (callback) => {
+    const sql = `
+      SELECT umidade, data_hora
+      FROM clima
+      ORDER BY data_hora ASC
+    `;
+    db.query(sql, callback);
+  },
+
   getLuminosidade: (callback) => {
     const sql = `
       SELECT lux, data_hora

@@ -1,5 +1,5 @@
 const axios = require('axios');
-const Clima = require('../models/clima'); // Seu model para salvar no banco
+const Clima = require('../models/clima'); 
 require('dotenv').config();
 
 const API_KEY = process.env.API_KEY;
@@ -19,6 +19,23 @@ exports.coletarEGravar = async () => {
     const umidade = resposta.data.main.humidity;
     const lux = estimarLux(resposta.data);
 
+    if (temperatura < 10 || temperatura > 34) {
+      Clima.salvarAlerta({
+        tipo: 'temperatura',
+        dados: temperatura
+        },(err) => {
+        if (err) return console.error('❌ Erro ao salvar no banco:', err);
+      });
+    }
+
+    if (umidade < 40 || umidade > 85) {
+      Clima.salvarAlerta({
+        tipo: 'umidade',
+        dados: umidade
+        },(err) => {
+        if (err) return console.error('❌ Erro ao salvar no banco:', err);
+      });
+    }
     Clima.salvar({ temperatura, umidade, lux }, (err) => {
       if (err) return console.error('❌ Erro ao salvar no banco:', err);
       console.log(`✅ Dados salvos: ${temperatura}°C | ${umidade}% | 💡 ${lux.toFixed(0)} lux`);
