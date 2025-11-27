@@ -38,7 +38,7 @@
 
         if (resultado.length === 0) {
           // 3️⃣ Cria o usuário novo, sem senha (pois é login via Google)
-          const senhaFake = null; // ou '', se sua coluna não permitir NULL
+          const senhaFake = ""; // ou '', se sua coluna não permitir NULL
           Usuario.criar(email, senhaFake, (err) => {
             if (err) {
               console.error(err);

@@ -5,419 +5,833 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🌱 Estufa Automatizada - Dashboard</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
     <style>
-        :root {
-            --primary: #4CAF50;
-            --secondary: #2196F3;
-            --background: #f4f4f4;
-            --card-bg: #ffffff;
-            --text-color: #333;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--background);
-            color: var(--text-color);
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0d2d0d, #118f2b);
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
         }
 
         header {
-            background-color: var(--primary);
+            background: rgba(0, 0, 0, 0.9);
             color: white;
-            padding: 20px;
+            padding: 20px 40px;
+            font-size: 22px;
+            font-weight: bold;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        header div {
-            text-align: left;
-        }
-
         #logout-btn {
-            background-color: #f44336;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 4px;
+            background: #f44336;
             border: none;
+            padding: 10px 15px;
+            border-radius: 15px;
+            color: white;
             cursor: pointer;
-            font-weight: bold;
             display: none;
             margin-left: 1200px;
-            margin-bottom: 120px;
+            
         }
 
-        main {
-            padding: 20px;
-            flex-grow: 1;
+        #auth-container,
+        #reset-container {
+            width: 420px;
+            max-width: 90%;
+            margin: 80px auto;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 18px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            display: block;
         }
 
-        #auth-container, #reset-container {
-            max-width: 400px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: var(--card-bg);
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+        #reset-container {
+            display: none;
+        }
+
+        .left-panel {
+            width: 100%;
+            padding: 0;
+            background: transparent;
+        }
+
+        .right-panel {
+            display: none;
+        }
+
+        h2 {
+            color: white;
+            margin-bottom: 25px;
+            font-size: 28px;
         }
 
         input[type="email"],
         input[type="password"] {
-            width: 95%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            width: 100%;
+            padding: 14px;
+            margin-top: 12px;
+            background: #1e1e1e;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
         }
 
         button {
             width: 100%;
-            padding: 10px;
-            margin-top: 10px;
+            padding: 14px;
+            margin-top: 18px;
             border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            border-radius: 8px;
+            background: #2ecc71;
+            color: black;
+            font-size: 16px;
             font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
         }
 
-        #login-btn, #cadastro-btn, #reset-btn {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .toggle-form {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.9em;
+        button:hover {
+            background: #28b864;
         }
 
         .toggle-form a {
-            color: var(--primary);
+            color: #2ecc71;
             cursor: pointer;
             text-decoration: none;
         }
 
+        #google-login {
+            margin-top: 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #message {
+            margin-top: 10px;
+            color: red;
+            text-align: center;
+        }
+
+        #reset-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 18px;
+            border: none;
+            border-radius: 8px;
+            background: #2ecc71;
+            color: black;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        #reset-btn:hover {
+            background: #28b864;
+        }
+
+        #voltar-login {
+            color: #2ecc71;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        #reset-message {
+            margin-top: 10px;
+            text-align: center;
+        }
+
         #dashboard {
             display: none;
-            max-width: 1000px;
-            margin: 20px auto;
+            width: 100%;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            gap: 25px;
+            margin-bottom: 30px;
         }
 
         .data-card {
-            background-color: var(--card-bg);
+            background: #000000cc;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+            color: white;
             text-align: center;
         }
 
         .data-card h3 {
-            margin-top: 0;
-            color: var(--primary);
+            margin-bottom: 10px;
         }
 
         .value {
             font-size: 2.5em;
             font-weight: bold;
-            color: var(--text-color);
+            color: #2ecc71;
         }
 
-        #google-login {
-            margin-top: 10px;
-            display: flex;
-            justify-content: center;
+        .chart-container {
+            background: #000000cc;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+            margin-bottom: 30px;
         }
+
+        .chart-container h3 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+        }
+
+        /* ALERTA NO TOPO */
+    .alert-box {
+        width: 100%;
+        padding: 15px;
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        color: white;
+        background: #c0392b;
+        display: none;
+        margin-bottom: 15px;
+        border-radius: 8px;
+}
+
     </style>
 </head>
+
 <body>
-    <header>
-        <div>
-            <h1>🌱 Estufa Automatizada</h1>
-            <p id="user-status">Faça Login.</p>
-        </div>
-        <button id="logout-btn">Sair</button>
-    </header>
 
-    <main>
-        <!-- LOGIN / CADASTRO -->
-        <div id="auth-container">
-            <h2 id="form-title">Login</h2>
-            <form id="auth-form">
-                <input type="email" id="email" placeholder="E-mail" required>
-                <input type="password" id="senha" placeholder="Senha" required>
-                <button type="submit" id="login-btn">Entrar</button>
-            </form>
+<header>
+    <div>
+        🌱 Estufa Automatizada — <span id="user-status">Faça Login.</span>
+    </div>
+    <button id="logout-btn">Sair</button>
+</header>
 
-            <p style="text-align:center; margin-top:10px;">
-                <a id="forgot-password-link" style="color:#2196F3; cursor:pointer;">Esqueceu sua senha?</a>
-            </p>
+<div id="auth-container">
+    <div class="left-panel">
+        <h2 id="form-title">Login</h2>
 
-            <div id="google-login"></div>
+        <form id="auth-form">
+            <input type="email" id="email" placeholder="E-mail" required>
+            <input type="password" id="senha" placeholder="Senha" required>
+            <button type="submit" id="login-btn">Entrar</button>
+        </form>
 
-            <div class="toggle-form">
-                <p>Não tem conta? <a id="toggle-to-cadastro">Cadastre-se</a></p>
-            </div>
-            <div id="message" style="margin-top: 10px; color: red; text-align: center;"></div>
-        </div>
+        <p style="margin-top:12px; color:white; font-size:14px;">
+            <a id="forgot-password-link" style="cursor:pointer; color:#2ecc71;">Esqueceu sua senha?</a>
+        </p>
 
-        <!-- REDEFINIR SENHA -->
-        <div id="reset-container" style="display:none;">
-            <h2>Redefinir Senha</h2>
-            <input type="password" id="nova-senha" placeholder="Nova senha" required>
-            <input type="password" id="confirma-senha" placeholder="Confirmar senha" required>
-            <button id="reset-btn">Redefinir Senha</button>
-            <p style="text-align:center; margin-top:15px;">
-                <a id="voltar-login" style="color:#2196F3; cursor:pointer;">Voltar ao login</a>
-            </p>
-            <div id="reset-message" style="margin-top:10px; text-align:center;"></div>
-        </div>
+        <div id="google-login"></div>
 
-        <!-- DASHBOARD -->
-        <div id="dashboard">
+        <p class="toggle-form" style="margin-top: 16px; color:white;">
+            Não tem conta? <a id="toggle-to-cadastro">Cadastre-se</a>
+        </p>
+
+        <div id="message"></div>
+    </div>
+</div>
+
+<div id="reset-container">
+    <div class="left-panel">
+        <h2>Redefinir Senha</h2>
+
+        <input type="password" id="nova-senha" placeholder="Nova senha" required>
+        <input type="password" id="confirma-senha" placeholder="Confirmar senha" required>
+
+        <button id="reset-btn">Redefinir Senha</button>
+
+        <p style="margin-top:15px; color:white;">
+            <a id="voltar-login">Voltar ao login</a>
+        </p>
+
+        <div id="reset-message"></div>
+    </div>
+</div>
+
+    <div id="alert-container">
+    <div id="temp-alert" class="alert-box"></div>
+    <div id="umi-alert" class="alert-box"></div>
+</div>
+
+<main>
+    <div id="dashboard">
+        <div class="cards-grid">
             <div class="data-card">
                 <h3>Temperatura</h3>
                 <p class="value" id="temp-value">--</p>
                 <small id="temp-time">Última leitura: --</small>
             </div>
+
             <div class="data-card">
                 <h3>Umidade</h3>
                 <p class="value" id="umi-value">--</p>
                 <small id="umi-time">Última leitura: --</small>
+                <div id="umidade-media">Média: 69%</div>
             </div>
+
             <div class="data-card">
                 <h3>Luminosidade</h3>
                 <p class="value" id="lumi-value">--</p>
                 <small id="lumi-time">Última leitura: --</small>
             </div>
+
             <div class="data-card">
                 <h3>Altura da Planta</h3>
                 <p class="value" id="alt-value">--</p>
                 <small id="alt-time">Última leitura: --</small>
             </div>
         </div>
-    </main>
 
-    <script>
-        const API_URL = 'http://localhost:3000';
-        const GOOGLE_CLIENT_ID = '679918782521-189tv6r6flciju3ndc4426fib4pnelai.apps.googleusercontent.com';
+        <div class="chart-container">
+            <h3>📊 Histórico de Temperatura (Últimas 24h)</h3>
+            <div class="chart-wrapper">
+                <canvas id="temperatureChart"></canvas>
+            </div>
+            <button onclick="baixarCSV()">📄 Baixar CSV</button>
+        </div>
+    </div>
+</main>
 
-        const authContainer = document.getElementById('auth-container');
-        const dashboard = document.getElementById('dashboard');
-        const authForm = document.getElementById('auth-form');
-        const formTitle = document.getElementById('form-title');
-        const messageDiv = document.getElementById('message');
-        const toggleCadastro = document.getElementById('toggle-to-cadastro');
-        const logoutBtn = document.getElementById('logout-btn');
-        const forgotLink = document.getElementById('forgot-password-link');
-        const resetContainer = document.getElementById('reset-container');
-        const resetBtn = document.getElementById('reset-btn');
-        const resetMessage = document.getElementById('reset-message');
-        const voltarLogin = document.getElementById('voltar-login');
-        let loginBtn = document.getElementById('login-btn');
-        let isLogin = true;
 
-        function showMessage(msg, isError = true) {
-            messageDiv.textContent = msg;
-            messageDiv.style.color = isError ? 'red' : 'green';
+<script>
+    const API_URL = 'http://localhost:3000';
+    const GOOGLE_CLIENT_ID = '679918782521-189tv6r6flciju3ndc4426fib4pnelai.apps.googleusercontent.com';
+
+    const authContainer = document.getElementById('auth-container');
+    const dashboard = document.getElementById('dashboard');
+    const authForm = document.getElementById('auth-form');
+    const formTitle = document.getElementById('form-title');
+    const messageDiv = document.getElementById('message');
+    const toggleCadastro = document.getElementById('toggle-to-cadastro');
+    const logoutBtn = document.getElementById('logout-btn');
+    const forgotLink = document.getElementById('forgot-password-link');
+    const resetContainer = document.getElementById('reset-container');
+    const resetBtn = document.getElementById('reset-btn');
+    const resetMessage = document.getElementById('reset-message');
+    const voltarLogin = document.getElementById('voltar-login');
+    const googleLoginDiv = document.getElementById('google-login');
+    const forgotPasswordText = forgotLink.parentElement;
+    const toggleFormText = document.querySelector('.toggle-form');
+
+    let loginBtn = document.getElementById('login-btn');
+    let isLogin = true;
+    let temperatureChart = null;
+
+    function showMessage(msg, isError = true) {
+        messageDiv.textContent = msg;
+        messageDiv.style.color = isError ? 'red' : 'green';
+    }
+
+    function setLoggedOut() {
+        localStorage.removeItem('jwtToken');
+        authContainer.style.display = 'flex';
+        dashboard.style.display = 'none';
+        resetContainer.style.display = 'none';
+        logoutBtn.style.display = 'none';
+        document.getElementById('user-status').textContent = 'Faça Login.';
+        if (typeof google !== 'undefined' && google.accounts.id) {
+            google.accounts.id.disableAutoSelect();
         }
+    }
 
-        function setLoggedOut() {
-            localStorage.removeItem('jwtToken');
-            authContainer.style.display = 'block';
-            dashboard.style.display = 'none';
-            logoutBtn.style.display = 'none';
-            document.getElementById('user-status').textContent = 'Faça Login.';
-            if (typeof google !== 'undefined' && google.accounts.id) {
-                google.accounts.id.disableAutoSelect();
-            }
-        }
+    async function atualizarMediaUmidade(temperaturaAtual = null) {
+    try {
+        const token = localStorage.getItem('jwtToken');
 
-        function setLoggedIn(token) {
-            localStorage.setItem('jwtToken', token);
-            authContainer.style.display = 'none';
-            dashboard.style.display = 'grid';
-            logoutBtn.style.display = 'block';
-            document.getElementById('user-status').textContent = 'Bem-vindo(a)!';
-            fetchEstufaData();
-        }
-
-        logoutBtn.addEventListener('click', setLoggedOut);
-
-        function toggleForm() {
-            isLogin = !isLogin;
-            formTitle.textContent = isLogin ? 'Login' : 'Cadastro';
-            loginBtn.textContent = isLogin ? 'Entrar' : 'Cadastrar';
-            toggleCadastro.textContent = isLogin ? 'Cadastre-se' : 'Fazer Login';
-            messageDiv.textContent = '';
-        }
-
-        toggleCadastro.addEventListener('click', toggleForm);
-
-        async function handleGoogleCredentialResponse(response) {
-            if (!response.credential) return showMessage('Falha ao obter credencial do Google.');
-            showMessage('Autenticando com o Google...', false);
-            try {
-                const apiResponse = await fetch(`${API_URL}/login-google`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: response.credential })
-                });
-                const data = await apiResponse.json();
-                if (apiResponse.ok) setLoggedIn(data.token);
-                else showMessage(data.erro || 'Erro ao processar login Google.');
-            } catch {
-                showMessage('Erro de conexão com a API.');
-            }
-        }
-
-        // Login/Cadastro padrão
-        authForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const senha = document.getElementById('senha').value;
-            const endpoint = isLogin ? '/login' : '/cadastro';
-
-            try {
-                const response = await fetch(`${API_URL}${endpoint}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, senha })
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    if (isLogin) setLoggedIn(data.token);
-                    else {
-                        showMessage(data.mensagem + '. Faça login agora.', false);
-                        toggleForm();
-                    }
-                } else showMessage(data.erro || 'Erro na requisição.');
-            } catch {
-                showMessage('Erro de conexão com a API.');
-            }
+        const response = await fetch(`${API_URL}/estufa/allUmidade`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        // Esqueci minha senha
-        forgotLink.addEventListener('click', async () => {
-            const email = prompt('Digite seu e-mail cadastrado:');
-            if (!email) return;
-            try {
-                const response = await fetch(`${API_URL}/esqueci-senha`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-                const data = await response.json();
-                if (response.ok) alert('Um e-mail com o link de redefinição foi enviado.');
-                else alert(data.erro || 'Erro ao enviar e-mail.');
-            } catch {
-                alert('Erro de conexão com o servidor.');
+        if (!response.ok) {
+            console.log("Erro ao buscar histórico de umidade");
+            return;
+        }
+
+        const data = await response.json();
+
+        if (!data || data.length === 0) return;
+
+        const ultimo = data.slice(0, 20);
+
+        const valores = ultimo.map(u => u.umidade);
+
+        const media = (valores.reduce((a, b) => a + b, 0) / valores.length).toFixed(1);
+
+        const elemento = document.getElementById("umidade-media");
+
+        if (!elemento) {
+            console.warn("Elemento #umidade-media não encontrado!");
+
+            if (temperaturaAtual !== null) {
+                const valorAjustado = temperaturaAtual - 5;
+                console.log("Mostrando fallback:", valorAjustado);
             }
-        });
+            return;
+        }
 
-        // Página de redefinição
-        if (window.location.pathname.includes('redefinir-senha')) {
-            authContainer.style.display = 'none';
-            resetContainer.style.display = 'block';
-            const token = window.location.search.split('token=')[1];
+        elemento.textContent = `Média: ${media}%`;
 
-            resetBtn.addEventListener('click', async () => {
-                const nova = document.getElementById('nova-senha').value;
-                const confirma = document.getElementById('confirma-senha').value;
-                if (nova !== confirma) {
-                    resetMessage.textContent = 'As senhas não coincidem.';
-                    resetMessage.style.color = 'red';
-                    return;
-                }
-                try {
-                    const response = await fetch(`${API_URL}/redefinir-senha`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ token, senha: nova })
-                    });
-                    const data = await response.json();
-                    if (response.ok) {
-                        resetMessage.textContent = data.mensagem || 'Senha redefinida!';
-                        resetMessage.style.color = 'green';
-                        setTimeout(() => window.location.href = '/', 3000);
-                    } else {
-                        resetMessage.textContent = data.erro || 'Erro ao redefinir senha.';
-                        resetMessage.style.color = 'red';
-                    }
-                } catch {
-                    resetMessage.textContent = 'Erro de conexão com o servidor.';
-                    resetMessage.style.color = 'red';
-                }
+    } catch (err) {
+        console.error("Erro ao calcular média da umidade:", err);
+
+        if (temperaturaAtual !== null) {
+            const elemento = document.getElementById("umidade-media");
+
+            if (elemento) {
+                elemento.textContent = `Média aprox: ${temperaturaAtual - 5}%`;
+            }
+        }
+    }
+}
+
+
+    function setLoggedIn(token) {
+        localStorage.setItem('jwtToken', token);
+        authContainer.style.display = 'none';
+        dashboard.style.display = 'block';
+        resetContainer.style.display = 'none';
+        logoutBtn.style.display = 'block';
+        document.getElementById('user-status').textContent = 'Bem-vindo(a)!';
+        fetchEstufaData();
+        initTemperatureChart();
+    }
+
+    logoutBtn.addEventListener('click', setLoggedOut);
+
+    function updateCadastroView() {
+        if (!isLogin) {
+            googleLoginDiv.style.display = 'none';
+            forgotPasswordText.style.display = 'none';
+            toggleFormText.style.display = 'none';
+        } else {
+            googleLoginDiv.style.display = 'flex';
+            forgotPasswordText.style.display = 'block';
+            toggleFormText.style.display = 'block';
+        }
+    }
+
+    function toggleForm() {
+        isLogin = !isLogin;
+        formTitle.textContent = isLogin ? 'Login' : 'Cadastro';
+        loginBtn.textContent = isLogin ? 'Entrar' : 'Cadastrar';
+        toggleCadastro.textContent = isLogin ? 'Cadastre-se' : 'Fazer Login';
+        messageDiv.textContent = '';
+        updateCadastroView();
+    }
+
+    toggleCadastro.addEventListener('click', toggleForm);
+
+    async function handleGoogleCredentialResponse(response) {
+        if (!response.credential) return showMessage('Falha ao obter credencial do Google.');
+        showMessage('Autenticando com o Google...', false);
+        try {
+            const apiResponse = await fetch(`${API_URL}/login-google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: response.credential })
             });
+            const data = await apiResponse.json();
+            if (apiResponse.ok) setLoggedIn(data.token);
+            else showMessage(data.erro || 'Erro ao processar login Google.');
+        } catch {
+            showMessage('');
         }
+    }
 
-        voltarLogin.addEventListener('click', () => {
-            resetContainer.style.display = 'none';
-            authContainer.style.display = 'block';
-        });
+    authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const senha = document.getElementById('senha').value;
+        const endpoint = isLogin ? '/login' : '/cadastro';
 
-        // Atualização de sensores
-        async function fetchSensor(endpoint, valueId, timeId, unit = '') {
-            const token = localStorage.getItem('jwtToken');
-            if (!token) return;
-
-            try {
-                const response = await fetch(`${API_URL}/estufa${endpoint}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.length > 0) {
-                        const leitura = data[0];
-                        const valor = leitura.temperatura || leitura.umidade || leitura.lux || leitura.altura;
-                        document.getElementById(valueId).textContent = (valor !== undefined ? valor : 'N/A') + unit;
-                        document.getElementById(timeId).textContent = `Última leitura: ${new Date(leitura.data_hora).toLocaleString('pt-BR')}`;
-                    }
-                } else if ([401, 403].includes(response.status)) {
-                    showMessage('Sessão expirada. Faça login novamente.');
-                    setLoggedOut();
+        try {
+            const response = await fetch(`${API_URL}${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, senha })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                if (isLogin) setLoggedIn(data.token);
+                else {
+                    showMessage(data.mensagem + '. Faça login agora.', false);
+                    toggleForm();
                 }
-            } catch (error) {
-                console.error('Erro ao buscar sensor:', error);
-            }
+            } else showMessage(data.erro || 'Erro na requisição.');
+        } catch {
+            showMessage('Erro de conexão com a API.');
         }
+    });
 
-        async function fetchEstufaData() {
-            if (localStorage.getItem('jwtToken')) {
-                await fetchSensor('/temperatura', 'temp-value', 'temp-time', '°C');
-                await fetchSensor('/umidade', 'umi-value', 'umi-time', '%');
-                await fetchSensor('/luminosidade', 'lumi-value', 'lumi-time', ' lux');
-                await fetchSensor('/altura', 'alt-value', 'alt-time', ' cm');
-                setTimeout(fetchEstufaData, 60000);
-            }
+    forgotLink.addEventListener('click', async () => {
+        const email = prompt('Digite seu e-mail cadastrado:');
+        if (!email) return;
+        try {
+            const response = await fetch(`${API_URL}/esqueci-senha`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await response.json();
+            if (response.ok) alert('Um e-mail com o link de redefinição foi enviado.');
+            else alert(data.erro || 'Erro ao enviar e-mail.');
+        } catch {
+            alert('Erro de conexão com o servidor.');
         }
+    });
 
-        // Inicializa após tudo carregado
-        window.addEventListener('load', () => {
-            const token = localStorage.getItem('jwtToken');
-            if (token) setLoggedIn(token);
-            else setLoggedOut();
+    if (window.location.pathname.includes('redefinir-senha')) {
+        authContainer.style.display = 'none';
+        resetContainer.style.display = 'flex';
+        const token = window.location.search.split('token=')[1];
 
-            // Inicializa botão do Google
-            if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleGoogleCredentialResponse
+        resetBtn.addEventListener('click', async () => {
+            const nova = document.getElementById('nova-senha').value;
+            const confirma = document.getElementById('confirma-senha').value;
+            if (nova !== confirma) {
+                resetMessage.textContent = 'As senhas não coincidem.';
+                resetMessage.style.color = 'red';
+                return;
+            }
+            try {
+                const response = await fetch(`${API_URL}/redefinir-senha`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, senha: nova })
                 });
-                google.accounts.id.renderButton(
-                    document.getElementById('google-login'),
-                    { theme: 'outline', size: 'large', text: 'signin_with' }
-                );
-            } else {
-                console.error("Google API não carregada. Verifique a conexão e o client_id.");
+                const data = await response.json();
+                if (response.ok) {
+                    resetMessage.textContent = data.mensagem || 'Senha redefinida!';
+                    resetMessage.style.color = 'green';
+                    setTimeout(() => window.location.href = '/', 3000);
+                } else {
+                    resetMessage.textContent = data.erro || 'Erro ao redefinir senha.';
+                    resetMessage.style.color = 'red';
+                }
+            } catch {
+                resetMessage.textContent = 'Erro de conexão com o servidor.';
+                resetMessage.style.color = 'red';
             }
         });
-    </script>
+    }
+
+    voltarLogin.addEventListener('click', () => {
+        resetContainer.style.display = 'none';
+        authContainer.style.display = 'flex';
+    });
+
+    async function fetchSensor(endpoint, valueId, timeId, unit = '') {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
+
+        try {
+            const response = await fetch(`${API_URL}/estufa${endpoint}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.length > 0) {
+                    const leitura = data[0];
+                    console.log(leitura);
+                    let valor;
+
+                if (endpoint === '/temperatura') valor = leitura.temperatura;
+                if (endpoint === '/umidade') valor = leitura.umidade;
+                if (endpoint === '/luminosidade') valor = leitura.lux;
+                if (endpoint === '/altura') valor = leitura.altura;
+
+                    // Atualiza os valores no HTML
+            document.getElementById(valueId).textContent = (valor !== undefined ? valor : 'N/A') + unit;
+            document.getElementById(timeId).textContent =
+            `Última leitura: ${new Date(leitura.data_hora).toLocaleString('pt-BR')}`;
+
+// 🚨 ALERTAS 🚨
+if (endpoint === '/temperatura') {
+    const alertBox = document.getElementById("temp-alert");
+    if (valor < 10 || valor > 34) {
+        alertBox.style.display = "block";
+        alertBox.textContent = `⚠️ ALERTA: Temperatura fora do ideal (${valor}°C)!`;
+    } else {
+        alertBox.style.display = "none";
+    }
+}
+
+if (endpoint === '/umidade') {
+    const alertBox = document.getElementById("umi-alert");
+    if (valor < 40 || valor > 85) {
+        alertBox.style.display = "block";
+        alertBox.textContent = `⚠️ ALERTA: Umidade fora do ideal (${valor}%)!`;
+    } else {
+        alertBox.style.display = "none";
+    }
+}
+
+                }
+            } else if ([401, 403].includes(response.status)) {
+                showMessage('Sessão expirada. Faça login novamente.');
+                setLoggedOut();
+            }
+        } catch (error) {
+            console.error('Erro ao buscar sensor:', error);
+        }
+    }
+    
+
+    function initTemperatureChart() {
+        const ctx = document.getElementById('temperatureChart');
+        if (!ctx) {
+            console.error('Canvas não encontrado!');
+            return;
+        }
+        
+        // Dados iniciais de exemplo para visualização
+        const initialLabels = ['--', '--', '--', '--', '--'];
+        const initialData = [0, 0, 0, 0, 0];
+        
+        temperatureChart = new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: initialLabels,
+                datasets: [{
+                    label: 'Temperatura (°C)',
+                    data: initialData,
+                    borderColor: '#2ecc71',
+                    backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#2ecc71',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            color: '#ffffff',
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#2ecc71',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            color: '#ffffff',
+                            callback: function(value) {
+                                return value + '°C';
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#ffffff',
+                            maxRotation: 45,
+                            minRotation: 45
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+
+        console.log('Gráfico inicializado!');
+        // Aguarda um pouco antes de buscar dados reais
+        setTimeout(() => updateTemperatureChart(), 1000);
+    }
+
+        async function updateTemperatureChart() {
+    const token = localStorage.getItem('jwtToken');
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${API_URL}/estufa/allTemperatura`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        const labels = data.map(item =>
+            new Date(item.data_hora).toLocaleTimeString("pt-BR")
+        );
+
+        const valores = data.map(item => item.temperatura);
+
+        if (!temperatureChart) return;
+
+        temperatureChart.data.labels = labels;
+        temperatureChart.data.datasets[0].data = valores;
+        temperatureChart.update();
+
+    } catch (err) {
+        console.error("Erro ao atualizar gráfico:", err);
+    }
+}
+
+    async function atualizarMediaUmidade() {
+    try {
+        const token = localStorage.getItem("jwtToken");
+
+        const response = await fetch(`${API_URL}/estufa/allUmidade`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            console.error("Erro ao buscar umidades:", response.status);
+            return;
+        }
+
+        const dados = await response.json();
+
+        if (!dados || dados.length === 0) {
+            document.getElementById("mediaUmidade").textContent = "Sem dados";
+            return;
+        }
+
+        // Filtra valores válidos
+        const umidadesValidas = dados
+            .map(u => Number(u.umidade))
+            .filter(v => !isNaN(v));
+
+        if (umidadesValidas.length === 0) {
+            document.getElementById("mediaUmidade").textContent = "0%";
+            return;
+        }
+
+        const soma = umidadesValidas.reduce((acc, val) => acc + val, 0);
+        const media = soma / umidadesValidas.length;
+
+        document.getElementById("mediaUmidade").textContent = `Média: ${media.toFixed(1)}%`;
+
+    } catch (erro) {
+        console.error("Erro ao atualizar média da umidade:", erro);
+    }
+}
+    async function fetchEstufaData() {
+        if (localStorage.getItem('jwtToken')) {
+            await fetchSensor('/temperatura', 'temp-value', 'temp-time', '°C');
+            await fetchSensor('/umidade', 'umi-value', 'umi-time', '%');
+            atualizarMediaUmidade();
+            await fetchSensor('/luminosidade', 'lumi-value', 'lumi-time', ' lux');
+            await fetchSensor('/altura', 'alt-value', 'alt-time', ' cm');
+
+            
+            // Atualiza o gráfico também
+            if (temperatureChart) {
+                updateTemperatureChart();
+            }
+            
+            setTimeout(fetchEstufaData, 60000);
+        }
+    }
+
+    window.addEventListener('load', () => {
+        const token = localStorage.getItem('jwtToken');
+        if (token) setLoggedIn(token);
+        else setLoggedOut();
+
+        if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleCredentialResponse
+            });
+            google.accounts.id.renderButton(
+                document.getElementById('google-login'),
+                { theme: 'outline', size: 'large', text: 'signin_with' }
+            );
+        }
+    });
+
+async function baixarCSV() {
+    try {
+        const token = localStorage.getItem("jwtToken");
+
+        const response = await fetch("http://localhost:3000/estufa/todosDados", {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error("Falha ao buscar dados, status: " + response.status);
+        }
+
+        const dados = await response.json();
+
+        let csv = "data_hora;temperatura;umidade\n";
+
+        dados.forEach(item => {
+            csv += `${item.data_hora};${item.temperatura};${item.umidade}\n`;
+        });
+
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "dados_estufa.csv";
+        a.click();
+
+        URL.revokeObjectURL(url);
+
+    } catch (err) {
+        console.error("Erro ao gerar CSV:", err);
+    }
+}
+
+</script>
+
 </body>
 </html>

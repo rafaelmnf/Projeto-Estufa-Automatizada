@@ -49,17 +49,13 @@ const Estufa = {
     db.query(sql, callback);
   },
 
-  getAltura: (id_usuario, callback) => {
+  getAltura: (callback) => {
     const sql = `
-      SELECT ls.valor AS altura, ls.data_hora
-      FROM leitura_sensor ls
-      JOIN sensor s ON ls.id_sensor = s.id_sensor
-      JOIN estufa e ON e.id_estufa = s.id_estufa
-      WHERE e.id_usuario = ? AND s.tipo = 'ultrassonico'
-      ORDER BY ls.data_hora DESC
-      LIMIT 1
+    SELECT altura, Data
+    FROM altura
+    LIMIT 1
     `;
-    db.query(sql, [id_usuario], callback);
+    db.query(sql, callback);
   },
 };
 

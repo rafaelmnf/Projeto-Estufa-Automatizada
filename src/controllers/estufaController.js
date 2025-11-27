@@ -14,6 +14,13 @@ exports.getAllTemp = (req, res) =>{
     });
 };
 
+exports.getAllUmidade = (req, res) =>{
+    Estufa.getAllUmidade((err, results) =>{
+        if (err) return res.status(500).json({ erro: 'Erro ao buscar umidade' });
+        res.json(results);
+    });
+};
+
 exports.getUmidade = (req, res) => {
     Estufa.getUmidade((err, results) => {
         if (err) return res.status(500).json({ erro: 'Erro ao buscar umidade' });
@@ -29,8 +36,7 @@ exports.getLuminosidade = (req, res) => {
 };
 
 exports.getAltura = (req, res) => {
-    const id_usuario = req.userId;
-    Estufa.getAltura(id_usuario, (err, results) => {
+    Estufa.getAltura((err, results) => {
         if (err) return res.status(500).json({ erro: 'Erro ao buscar altura' });
         res.json(results);
     });
@@ -49,3 +55,24 @@ exports.alertaUmidade = (req, res) => {
         res.json(results);
   });
 };
+
+exports.getTodosDados = (req, res) => {
+    // Primeiro busca temperatura
+    Estufa.getAllTemp((err, tempData) => {
+        if (err) return res.status(500).send(err);
+
+        // Depois busca umidade
+        Estufa.getAllUmidade((err2, umiData) => {
+            if (err2) return res.status(500).send(err2);
+
+            // Combina temperatura + umidade + data_hora
+            const resultado = tempData.map((item, index) => ({
+                temperatura: item.temperatura,
+                umidade: umiData[index] ? umiData[index].umidade : null,
+                data_hora: item.data_hora
+            }));
+
+            res.json(resultado);
+        });
+    });
+}
